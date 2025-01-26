@@ -27,9 +27,5 @@
     <li>The results will be saved to a CSV file for further use.</li>
 </ol>
 
-<p>Check out the full code and contribute to the project! 🎉</p>
 
-<p><a href="https://github.com/shari01/JensenLab_Z-Score-Scraper" target="_blank">Check out the project on GitHub!</a></p>
 
-<h3>Technologies:</h3>
-<p>#Python #DataScience #WebScraping #Biomarkers #CancerResearch #Selenium #JensenLab #Automation</p>
