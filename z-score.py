@@ -7,7 +7,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 import time
-from random import randint  # For introducing random delays
 
 # Function to extract Z-score from the web
 def extract_z_score(driver, biomarker_name):
@@ -18,7 +17,6 @@ def extract_z_score(driver, biomarker_name):
         WebDriverWait(driver, 10).until(
             EC.visibility_of_element_located((By.TAG_NAME, 'body'))
         )
-        time.sleep(randint(10, 20))  # Extended random delay before proceeding
         
         # Look for the first table
         table = driver.find_element(By.TAG_NAME, 'table')
@@ -26,12 +24,10 @@ def extract_z_score(driver, biomarker_name):
         link = first_row.find_element(By.TAG_NAME, 'a').get_attribute('href')  # Get the href from the first row's anchor tag
         driver.get(link)
         
-        time.sleep(randint(10, 20))  # Extended random delay after loading the link
-        
         WebDriverWait(driver, 10).until(
             EC.visibility_of_element_located((By.XPATH, "//div[@class='table_title' and text()='Text mining']"))
         )
-
+        
         # Loop through multiple pages and tables to find Z-scores
         z_score_cervical = None
         z_score_cancer = None
@@ -62,7 +58,6 @@ def extract_z_score(driver, biomarker_name):
             try:
                 next_button = driver.find_element(By.XPATH, "//span[contains(text(), 'Next')]")
                 next_button.click()  # Click to go to the next page
-                time.sleep(randint(15, 30))  # Longer random delay between 15-30 seconds before navigating
                 WebDriverWait(driver, 10).until(
                     EC.visibility_of_element_located((By.XPATH, "//div[@class='table_title' and text()='Text mining']"))
                 )
@@ -96,9 +91,18 @@ def extract_z_score(driver, biomarker_name):
 # Main function
 def main():
     start_time = time.time()
-    
-    # Get biomarker list input from the user
-    biomarker_list = input("Enter biomarkers separated by commas: ").split(',')
+
+    # Get the file location input from the user (path to the biomarker list CSV)
+    file_path = input("Enter the path to the file containing biomarker genes (e.g., 'genes.csv'): ")
+
+    # Read the biomarker file
+    try:
+        biomarker_df = pd.read_csv(file_path)  # Assuming the file is CSV and has a column named 'gene'
+        biomarker_list = biomarker_df['gene'].dropna().tolist()  # Extract genes under the 'gene' column
+        print(f"Loaded {len(biomarker_list)} biomarkers from the file.")
+    except Exception as e:
+        print(f"Error reading the file: {e}")
+        return
 
     chrome_options = Options()
     chrome_options.add_argument("--no-sandbox")
@@ -127,14 +131,15 @@ def main():
                     break
                 else:
                     print(f"Attempt {attempt + 1}: Z-score could not be retrieved for {biomarker_name}. Retrying...")
-                    time.sleep(randint(10, 20))  # Longer delay before retrying
+
+                time.sleep(2)
 
             if z_score_cervical is None and z_score_cancer is None:
                 print(f"Failed to retrieve Z-scores for {biomarker_name} after {retries} attempts.")
 
         # Save the results to a CSV file
         results_df = pd.DataFrame(results)
-        results_df.to_csv("C:/Users/Sheryar Malik/Downloads/cgc/updated-biomarker_z_scores.csv", index=False)
+        results_df.to_csv("C:/Users/Sheryar Malik/Downloads/z-score/e6-e7-z-score-library.csv", index=False)
         print(f"Results saved to 'biomarker_z_scores.csv'.")
         
         # Print summary
